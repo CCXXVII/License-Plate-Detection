@@ -8,7 +8,7 @@ import pytesseract
 
 pytesseract.pytesseract.tesseract_cmd = "C:\\Users\\enest\\AppData\\Local\\Tesseract-OCR\\tesseract.exe"
 
-img = cv2.imread("cars/car7.jpg")
+img = cv2.imread("cars/car4.jpg")
 img = cv2.resize(img,(500,500))
 img_bgr = img
 img_gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
@@ -45,9 +45,9 @@ for c in cnt:
         area = cv2.contourArea(c)
         extent = area / float(w*h)
         
-        control1 = may_median > 84 and may_median < 165
-        control2 = h < 50 and w < 150
-        control3 = w < 50 and h < 150
+        control1 = may_median > 84 and may_median < 169
+        control2 = h < 62 and w < 165
+        control3 = w < 62 and h < 165
         control4 = extent > 0.55
         
 
@@ -55,6 +55,7 @@ for c in cnt:
         found = False   
 
         if(control1 and ((control2 or control3) and control4)):
+        #if(control1 and control4):
             cv2.drawContours(img, [box], 0, (255,0,0), 2)
             license = [int(i) for i in [minx,miny,w,h]]
             plt.title("vuuuuu")
@@ -71,12 +72,26 @@ for c in cnt:
             break
 
 img_may_license = cv2.imread("may_license.jpg",1)
-img_may_license = cv2.resize(img_may_license,(425,180))
+img_may_license = cv2.resize(img_may_license,(500,180))
 img_bilateral = cv2.bilateralFilter(img_may_license,15,75,75)
-img_thresh = cv2.threshold(img_bilateral, 127, 255, cv2.THRESH_BINARY_INV)[1]
+img_thresh = cv2.threshold(img_bilateral, 138, 255, cv2.THRESH_BINARY_INV)[1]
+
+img_may_license_0 = cv2.imread("may_license.jpg",0)
+img2 = cv2.medianBlur(img_may_license_0,5)
+th2 = cv2.adaptiveThreshold(img2,255,cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY,11,2)
+
+
 kernel = np.ones((3,3), np.uint8)
 erosion = cv2.erode(img_thresh, kernel, iterations=1)
 string = pytesseract.image_to_string(erosion)
 print(string)
+
+#cv2.imshow("img", img_may_license)
+#cv2.imshow("bilateral", img_bilateral)
+#cv2.imshow("th", img_thresh)
+#cv2.imshow("thadaptive", th2)
+#cv2.imshow("ero", erosion)
+#plt.imshow(img_bilateral)
+#plt.show()
 cv2.waitKey(0)
 cv2.destroyAllWindows()
