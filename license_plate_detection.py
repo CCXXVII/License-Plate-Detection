@@ -5,6 +5,7 @@ from cv2 import blur
 import numpy as np
 import matplotlib.pyplot as plt
 import pytesseract
+from torch import empty
 
 pytesseract.pytesseract.tesseract_cmd = "C:\\Users\\enest\\AppData\\Local\\Tesseract-OCR\\tesseract.exe"
 
@@ -55,7 +56,6 @@ for c in cnt:
         found = False   
 
         if(control1 and ((control2 or control3) and control4)):
-        #if(control1 and control4):
             cv2.drawContours(img, [box], 0, (255,0,0), 2)
             license = [int(i) for i in [minx,miny,w,h]]
             plt.title("vuuuuu")
@@ -67,38 +67,29 @@ for c in cnt:
             print("couldnt detect")
             cv2.drawContours(img,[box],0,(0,0,255),2)
             plt.title("masmalesef")
-
         if(found):
             break
 
-img_may_license = cv2.imread("may_license.jpg",1)
-img_may_license = cv2.resize(img_may_license,(500,180))
-img_bilateral = cv2.bilateralFilter(img_may_license,15,75,75)
-img_thresh = cv2.threshold(img_bilateral, 138, 255, cv2.THRESH_BINARY_INV)[1]
+img_may_license_v2 = cv2.imread("may_license.jpg",0)
+img_may_license_v2 = cv2.resize(img_may_license_v2,(500,180))
+img2 = cv2.medianBlur(img_may_license_v2,5)
+th_adaptive = cv2.adaptiveThreshold(img2,255,cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV,75,12)
 
-img_may_license_0 = cv2.imread("may_license.jpg",0)
-img_may_license_0 = cv2.resize(img_may_license_0,(500,180))
-img2 = cv2.medianBlur(img_may_license_0,5)
-th_adaptive = cv2.adaptiveThreshold(img2,255,cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY,75,25)
-
-
-
-
-
-kernel = np.ones((3,3), np.uint8)
-erosion = cv2.erode(img_thresh, kernel, iterations=1)
-string = pytesseract.image_to_string(th_adaptive)
+###-----------OPENING--------------
+kernel = np.ones((5,5), np.uint8)
+opening = cv2.morphologyEx(th_adaptive, cv2.MORPH_OPEN, kernel)
+string = pytesseract.image_to_string(opening)
 print(string)
-
+###-----------OPENING--------------
 
 #cv2.imshow("img", img_may_license)
-#cv2.imshow("ero", erosion)
 #cv2.imshow("bilateral", img_bilateral)
 #cv2.imshow("canny", img_canny)
 #cv2.imshow("cannydilate", img_canny_dilate)
-cv2.imshow("th", img_thresh)
-cv2.imshow("thadaptive", th_adaptive)
+#cv2.imshow("th", img_thresh)
+#cv2.imshow("thadaptive", th_adaptive)
 #plt.imshow(img_bilateral)
 #plt.show()
+cv2.imshow("opening", opening)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
